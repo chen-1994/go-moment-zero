@@ -1,7 +1,8 @@
 package main
 
 import (
-	stringTest "core-grammar/string-test"
+	//mt "core-grammar/method-test"
+	it "core-grammar/interface_test"
 )
 
 func main() {
@@ -12,5 +13,9 @@ func main() {
 	//et.ProtobufTest1()
 	//et.YmlTest2()
 	//et.XmlTest1()
-	stringTest.StringTest2()
+	//stringTest.StringTest2()
+	//ft.Test5()
+	//mt.Test6()
+	//pt.Test3()
+	it.Test3()
 }
