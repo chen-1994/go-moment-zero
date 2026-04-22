@@ -5,8 +5,10 @@ import (
 	//it "core-grammar/interface_test"
 	//cg "core-grammar/generic-test"
 	//it "core-grammar/iter-test"
-	et "core-grammar/err-test"
+	//et "core-grammar/err-test"
 	//tt "core-grammar/err-test"
+	//rt "core-grammar/reflection-test"
+	ct "core-grammar/concurrency-test"
 )
 
 func main() {
@@ -25,5 +27,7 @@ func main() {
 	//cg.Test4()
 	//it.Test7()
 	//tt.Test()
-	et.Test13()
+	//et.Test13()
+	//rt.Test20()
+	ct.Test23()
 }
