@@ -8,7 +8,9 @@ import (
 	//et "core-grammar/err-test"
 	//tt "core-grammar/err-test"
 	//rt "core-grammar/reflection-test"
-	ct "core-grammar/concurrency-test"
+	//ct "core-grammar/concurrency-test"
+	//ht "core-grammar/http-test"
+	mt "core-grammar/math-test"
 )
 
 func main() {
@@ -29,5 +31,7 @@ func main() {
 	//tt.Test()
 	//et.Test13()
 	//rt.Test20()
-	ct.Test23()
+	//ct.Test23()
+	//ht.Test8()
+	mt.Test1()
 }
