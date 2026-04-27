@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "./;person";
+
+package proto;
+
+enum Gender{
+  MAIL = 0;
+  FE_MAIL = 1;
+}
+
+message person {
+  string name = 1;
+  int32 age = 2;
+  Gender gender = 3;
+}
+//protoc --go_out=. --go-grpc_out=. *.proto

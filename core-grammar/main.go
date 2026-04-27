@@ -11,6 +11,7 @@ import (
 	//ct "core-grammar/concurrency-test"
 	//ht "core-grammar/http-test"
 	mt "core-grammar/math-test"
+	"fmt"
 )
 
 func main() {
@@ -33,5 +34,9 @@ func main() {
 	//rt.Test20()
 	//ct.Test23()
 	//ht.Test8()
-	mt.Test1()
+	mt.Test2()
+
+	a := "a"
+	a = a + "abc"
+	fmt.Println(a)
 }

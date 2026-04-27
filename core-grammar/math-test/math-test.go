@@ -54,3 +54,5 @@ func Test1() {
 	fmt.Println(math.Tan(0))
 	fmt.Println(math.Tan(20))
 }
+
+func Test2() {}
