@@ -1,6 +1,7 @@
 package gin_test
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -526,5 +527,128 @@ func Test20() {
 	r.Run(":8080")
 }
 
-//基于请求头的版本管理
-//基于请求头的版本管理可以保持 URL 整洁，但需要客户端设置自定义请求头。中间件可以读取请求头并将版本存储在上下文中。
+// 基于请求头的版本管理
+// 基于请求头的版本管理可以保持 URL 整洁，但需要客户端设置自定义请求头。中间件可以读取请求头并将版本存储在上下文中。
+func VersionMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		version := c.GetHeader("version")
+		if version == "" {
+			version = "v1"
+		}
+		c.Set("api_version", version)
+		c.Next()
+	}
+}
+func Test21() {
+	r := gin.Default()
+	r.Use(VersionMiddleware())
+	r.GET("/api/users", func(c *gin.Context) {
+		version := c.GetString("api_version")
+		switch version {
+		case "v2":
+			c.JSON(http.StatusOK, gin.H{"version": "v2", "users": []gin.H{}})
+		default:
+			c.JSON(http.StatusOK, gin.H{"version": "v1", "users": []string{}})
+		}
+	})
+
+}
+
+// 错误处理模式
+// 自定义错误类型
+// 定义应用级别的错误类型，使处理函数能够返回有意义的、结构化的错误。
+type AppError struct {
+	Status  int    `json:"-"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e *AppError) Error() string {
+	return e.Message
+}
+
+var (
+	ErrNotFound     = &AppError{Status: http.StatusNotFound, Code: "not_found", Message: "Not Found"}
+	ErrUnauthorized = &AppError{Status: http.StatusUnauthorized, Code: "unauthorized", Message: "Unauthorized"}
+	ErrBadRequest   = &AppError{Status: http.StatusBadRequest, Code: "bad_request", Message: "Bad Request"}
+)
+
+func ErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		if len(c.Errors) > 0 {
+			return
+		}
+		err := c.Errors.Last().Err
+		var appErr *AppError
+		if errors.As(err, &appErr) {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"error":   gin.H{"code": appErr.Code, "message": appErr.Message}})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"error":   gin.H{"code": "INTERNAL", "message": "an unexpected error occurred"},
+			})
+		}
+	}
+}
+
+func Test22() {
+	r := gin.Default()
+	r.Use(VersionMiddleware()) //用于全局应用中间件
+	r.GET("/api/item/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		if id == "0" {
+			_ = c.Error(ErrNotFound) //Gin 的错误收集机制。它并不会立即中断请求或向客户端发送响应，而是将错误挂载到当前上下文中，方便后续的中间件（如统一错误处理中间件）获取并处理。
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"id": id}})
+	})
+	r.Run(":8080")
+}
+
+// 基于资源的路由组织
+// 随着 API 的增长，按资源组织路由。每个资源都有自己的文件，包含一个在 gin.RouterGroup 上注册路由的函数
+
+func RegisterUserRoutes(rg *gin.RouterGroup) {
+	users := rg.Group("/users")
+	{
+		users.GET("/", listUsers)
+		users.POST("/", createUser)
+		users.GET("/:id", getUser)
+		users.PUT("/:id", updateUser)
+		users.DELETE("/:id", deleteUser)
+	}
+
+}
+func RegisterOrderRoutes(rg *gin.RouterGroup) {
+	orders := rg.Group("/orders")
+	{
+		orders.GET("/", listOrders)
+		orders.POST("/", createOrder)
+		orders.GET("/:id", getOrder)
+	}
+}
+
+func listUsers(c *gin.Context)  { c.JSON(http.StatusOK, gin.H{"action": "list_users"}) }
+func createUser(c *gin.Context) { c.JSON(http.StatusCreated, gin.H{"action": "create_user"}) }
+func getUser(c *gin.Context)    { c.JSON(http.StatusOK, gin.H{"action": "get_user"}) }
+func updateUser(c *gin.Context) { c.JSON(http.StatusCreated, gin.H{"action": "update_user"}) }
+func deleteUser(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"action": "delete_user"}) }
+
+func listOrders(c *gin.Context)  { c.JSON(http.StatusOK, gin.H{"action": "list_orders"}) }
+func createOrder(c *gin.Context) { c.JSON(http.StatusCreated, gin.H{"action": "create_order"}) }
+func getOrder(c *gin.Context)    { c.JSON(http.StatusOK, gin.H{"action": "get_order"}) }
+
+func Test23() {
+	r := gin.Default()
+
+	api := r.Group("/api/v1")
+	RegisterUserRoutes(api)
+	RegisterOrderRoutes(api)
+	r.Run(":8080")
+	//在实际项目中，你会将 RegisterUserRoutes 放在 routes/users.go 文件中，
+	//将 RegisterOrderRoutes 放在 routes/orders.go 中，然后在 main.go 中调用它们。
+	//这样可以让每个资源自包含，并且在添加或删除资源时不需要修改不相关的代码。
+}
