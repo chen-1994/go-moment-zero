@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+// 生成的文件存放在當前目錄，包名為 main
+option go_package = "./;hello";
+
+package hello;
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
